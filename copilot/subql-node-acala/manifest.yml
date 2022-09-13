@@ -1,0 +1,43 @@
+name: subql-node-acala
+type: Backend Service
+
+# ---------- configs ---------- #
+image:
+  build: indexer.Dockerfile
+  port: 3000
+
+cpu: 2048
+memory: 4096
+count: 1
+exec: true
+
+deployment:
+  rolling: 'recreate'       # Stops existing tasks before new ones are started for faster deployments.  TODO: can use for prod?
+
+# ---------- env and variables ---------- #
+variables:
+  DB_USER: postgres
+  DB_DATABASE: postgres
+  DB_HOST: subql-evm.cluster-cspmstlhvanj.ap-southeast-1.rds.amazonaws.com
+  DB_PASS: k9IuVwWNt4mbw3X5esk0       # TODO: save to ssm
+  DB_PORT: 5432
+
+# secrets:
+#   DB_PASS: /bodhi/dev/POSTGRES_PASSWORD
+
+# there doesn't seem to be a way to only pass args (TODO: any way?)
+# so override the whole entry point
+entrypoint: [
+  "/sbin/tini",
+  "--",
+  "/usr/local/lib/node_modules/@subql/node/bin/run",
+  "-f=/app/project-acala-840000.yaml",
+  "--network-endpoint=wss://acala-acala-apac-1.bdnodes.net:8443/parachain?auth=HOmvW6NHq8lRImVLs5KYrKUf7PsNbS6S06JA0jmYuFg",
+  "--db-schema=evm-acala",
+  "--log-level=debug",
+  "--batch-size=100",
+  "--unsafe",
+]
+
+tags:
+  project: bodhi-acala
